@@ -16,11 +16,11 @@ function [SWE,datevals]=getSWE(P,sensor,startdate,enddate,conn)
 
 % which tables?
 if strcmp(sensor,'pillow')
-    tstr1='SELECT ALL MeasDate,SWEmm from DailyRawSWE WHERE';
-    tstr2='AND MeasDate BETWEEN';
+    tstr1='SELECT ALL Date,SWE from PillowSWE WHERE';
+    tstr2='AND Date BETWEEN';
 elseif strcmp(sensor,'course')
-    tstr1='SELECT ALL MeasDate,SWEmm from CourseRawSWE WHERE';
-    tstr2='AND MeasDate BETWEEN';
+    tstr1='SELECT ALL Date,SWE from CourseSWE WHERE';
+    tstr2='AND Date BETWEEN';
 else
     error('function getSWE: sensor %s invalid',sensor)
 end
@@ -41,15 +41,11 @@ for k=1:np
     % read data for station P(k)
     e = exec(conn,qstr);
     e = fetch(e);
-%     close(e);
-% e = fetch(conn,qstr);
-% close(conn)
     % put the data into the sv vector, the station # into pv, and the date
     % into dv
-     if ~strcmp(e.Data,'No Data')
-%     if ~isempty(e.Data)
+    if ~strcmp(e.Data{1},'No Data');
         sv=cat(1,sv,cell2mat(e.Data(:,2)));
-        pv=cat(1,pv,ones(height(e.Data(:,2)),1)*k);
+        pv=cat(1,pv,ones(length(e.Data(:,2)),1)*k);
         dv=cat(1,dv,datenum(e.Data(:,1)));
     end
 end

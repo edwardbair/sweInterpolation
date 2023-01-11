@@ -1,6 +1,7 @@
 % find the Pillows and Courses in an elevation grid, along with their
 % coordinates
-function [P,C,XP,XC]=getGridStations(mstruct,Rmap,Z,conn)
+function [P,C,XP,XC]=...
+    getGridStations2(mstruct,Rmap,Z,conn)
 %
 % input
 %   mstruct - structure that defines projection of grid
@@ -24,23 +25,19 @@ N=size(Z);
 % conn=database.ODBCConnection('SierraNevadaSnow',username,passwd);
 % first the pillows
 % generate the query
-qstr=sprintf('SELECT DISTINCT CDEC,Elevation,Latitude,Longitude FROM locationStation WHERE Latitude BETWEEN %g AND %g AND Longitude BETWEEN %g AND %g',...
+qstr=sprintf('SELECT DISTINCT CDEC,Elevation,Latitude,Longitude FROM PillowLocation WHERE Latitude BETWEEN %g AND %g AND Longitude BETWEEN %g AND %g',...
     min(lat),max(lat),min(lon),max(lon));
 % retrieve the data
-curs = exec(conn,qstr);
-e = fetch(curs);
-% close(curs)
-% close(e)
-% e=fetch(conn,qstr);
-% close(conn)
-if isempty(e.Data) | strcmp(e.Data,'No Data')
+e = exec(conn,qstr);
+e = fetch(e);
+close(e)
+if isempty(e.Data) | strcmp(e.Data(:,1),'No Data')
     warning('function getGridStations: pillow query returned no data\n%s',qstr)
     P=[];
     XP=[];
 else
-     P=e.Data(:,1);
-     zp=cell2mat(e.Data(:,2));
-
+    P=e.Data(:,1);
+    zp=cell2mat(e.Data(:,2));
     [xp,yp]=projfwd(mstruct,cell2mat(e.Data(:,3)),cell2mat(e.Data(:,4)));
     XP=zeros(length(xp),3);
     XP(:,1)=xp;
@@ -50,13 +47,13 @@ end
 
 % then the courses
 % generate the query
-qstr=sprintf('SELECT DISTINCT CDEC,Elevation,Latitude,Longitude FROM LocationCourse WHERE Latitude BETWEEN %g AND %g AND Longitude BETWEEN %g AND %g',...
+qstr=sprintf('SELECT DISTINCT CDEC,Elevation,Latitude,Longitude FROM CourseLocationCurrent WHERE Latitude BETWEEN %g AND %g AND Longitude BETWEEN %g AND %g',...
     min(lat),max(lat),min(lon),max(lon));
 % retrieve the data
-e = exec(conn,qstr,'cursorType','scrollable');
+e = exec(conn,qstr);
 e = fetch(e);
-% close(e)
-if isempty(e.Data) | strcmp(e.Data,'No Data')
+close(e)
+if isempty(e.Data) | strcmp(e.Data(:,1),'No Data')
     warning('function getGridStations: course query returned no data\n%s',qstr)
     C=[];
     XC=[];
